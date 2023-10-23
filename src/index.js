@@ -2,6 +2,7 @@ import SlimSelect from 'slim-select';
 import 'slim-select/dist/slimselect.css';
 import { fetchBreeds } from './js/cat-api.js'
 import { fetchCatByBreed } from './js/cat-api.js'
+import Notiflix from 'notiflix';
 
 const elements = {
     select: document.querySelector('.breed-select'),
@@ -14,80 +15,9 @@ elements.loader.classList.add('visually-hidden');
 elements.error.classList.add('visually-hidden');
 elements.catInfo.classList.add('visually-hidden')
 
-// const select = new SlimSelect({
-//     select: elements.select,
-
-//     settings: {
-//         disabled: false,
-//         alwaysOpen: false,
-//         showSearch: true,
-//         searchPlaceholder: 'Search',
-//         searchText: 'No Results',
-//         searchingText: 'Searching...',
-//         searchHighlight: false,
-//         closeOnSelect: true,
-//         contentLocation: document.body,
-//         contentPosition: 'absolute',
-//         openPosition: 'auto',
-//         placeholderText: 'Select Value',
-//         allowDeselect: false,
-//         hideSelected: false,
-//         showOptionTooltips: false,
-//         minSelected: 0,
-//         maxSelected: 1000,
-//         timeoutDelay: 200,
-//         maxValuesShown: 20,
-//         maxValuesMessage: '{number} selected',
-//     },
-//     // events: {
-//     //      search: (search, currentData) => {
-//     //   return new Promise((resolve, reject) => {
-//     //     if (search.length < 2) {
-//     //       return reject('Search must be at least 2 characters')
-//     //     }
-
-//         // // Fetch random first and last name data
-//         // fetch('https://api.gofakeit.com/json', {
-//         //   method: 'POST',
-//         //   headers: {
-//         //     'Content-Type': 'application/json',
-//         //   },
-//         //   body: JSON.stringify({
-//         //     type: 'array',
-//         //     rowcount: 10,
-//         //     indent: false,
-//         //     fields: [
-//         //       { name: 'first_name', function: 'firstname', params: {} },
-//         //       { name: 'last_name', function: 'lastname', params: {} },
-//         //     ],
-//         //   }),
-//         // })
-//         //   .then((response) => response.json())
-//         //   .then((data) => {
-//         //     // Take the data and create an array of options
-//         //     // excluding any that are already selected in currentData
-//         //     const options = data
-//         //       .filter((person) => {
-//         //         return !currentData.some((optionData) => {
-//         //           return optionData.value === `${person.first_name} ${person.last_name}`
-//         //         })
-//         //       })
-//         //       .map((person) => {
-//         //         return {
-//         //           text: `${person.first_name} ${person.last_name}`,
-//         //           value: `${person.first_name} ${person.last_name}`,
-//         //         }
-//         //       })
-
-//         //     resolve(options)
-//         //   })
-// //       })
-// //     }
-// //   
-// })
-
 fetchBreeds()
     .then(datas => {
+        
         const listBreed = datas.map(({ id, name }) => {
             return `<option value="${id}">${name}</option>`
         }).join('');
@@ -121,47 +51,79 @@ fetchBreeds()
             },
             events: {
                 afterChange: (newVal) => {
-                    const breedId = newVal[0].value;
+            
+                    onLoad();
+                    
 
-                    fetchCatByBreed(breedId)
-                        .then(catInfo => {
-                            console.log(catInfo)
-                            let { url } = catInfo[0];
-                            console.log(url)
-                            return url 
+                    const breedId = newVal[0].value;
+                
+                    fetchBreeds()
+                        .then(data => {
+                        elements.catInfo.classList.remove('visually-hidden');
+                        
+                        const catArr = data.filter(element => {return element.id === breedId});
+                        const { description, name, temperament } = catArr[0];
+
+                        fetchCatByBreed(breedId)
+                            .then(catInfo => {
+                                const { url } = catInfo[0];
+                               
+                                const catCard = catInfo.map(({ url }) => {
+                                    return `
+                                        <div class="card">
+                                            <img src="${url}" alt="Сat breed '${name}'" width="400" class="card-image">
+                                            <div class="card-description">
+                                                <h1 class="card-title">${name}</h1>
+                                                <p class="card-text">${description}</p>
+                                                <p class="card-text"><span class="card-text-color">Temperament:</span><br><span class="card-text">${temperament}</span></p>
+                                            </div>
+                                        </div>
+                                    `
+                                }).join('');
+
+                                removeChildren(elements.catCard)
+                                elements.catInfo.innerHTML = catCard;
+
+                                onFinish() 
+                            })
+                            .catch(error => {
+                                onError(error)
+                                console.log(error)
+                            });
+                        
+                        // onFinish()
                         })
-                        .catch(error => { console.log(error) });
+                        .catch(error => {
+                            onError(error);
+                            console.log(error);
+                        })
                 }
             }
         })
-    
-        return select;
-        
-    })
+
+    return select; 
+
+})
 .catch(error => {
-    console.log(error)
+    onError(error);
+    console.log(error);
 });
 
 
+function onLoad() {
+    elements.loader.textContent = '';
+    elements.catInfo.classList.add('visually-hidden');
+    elements.loader.classList.remove('visually-hidden');
+    
+}
+function onFinish(catCard) {
+    // elements.catInfo.remove()
+    //  elements.catInfo.innerHTML = catCard;
+    elements.catInfo.classList.remove('visually-hidden');
+    elements.loader.classList.add('visually-hidden');
+}
 
-// function renderCard(catInfo) {
-//      elements.catInfo.classList.remove('visually-hidden');
-        // const { url } = catInfo[0];
-        
-        // const catCard = catInfo.map(({ url }) => {
-        //     const { description, name, temperament } = datas[newVal[0].value];
-        //     return `
-        //     <div class="card-image">
-        //         <img src="${url}" alt="Сat breed "${name}" width="500">
-        //     </div>
-        //     <div class="card-description">
-        //         <h1 class="card-title">${name}</h1>
-        //         <p class="card-text">${description}</p>
-        //         <p class="card-text">Temperament: ${temperament}</p>
-        //     </div>`
-        // }).join('');
-        // elements.catInfo.insertAdjacentHTML('beforeend', catCard);
-// }
-
-
-
+function onError(error) {
+    elements.error.textContent = '';
+    Notiflix.Notify.warning('Oops! Something went wrong! Try reloading the page!')
+}
