@@ -60,7 +60,7 @@ fetchBreeds()
                     fetchBreeds()
                         .then(data => {
                         elements.catInfo.classList.remove('visually-hidden');
-                        
+                        console.log(data)
                         const catArr = data.filter(element => {return element.id === breedId});
                         const { description, name, temperament } = catArr[0];
 
@@ -83,14 +83,15 @@ fetchBreeds()
 
                                 elements.catInfo.innerHTML = catCard;
 
-                                onFinish() 
+                                // onFinish() 
                             })
                             .catch(error => {
                                 onError(error)
                                 console.log(error)
                             });
-                        
-                        // onFinish()
+
+                         onFinish()
+                       
                         })
                         .catch(error => {
                             onError(error);
@@ -99,7 +100,8 @@ fetchBreeds()
                 }
             }
         })
-
+       
+        
     return select; 
 
 })
@@ -109,15 +111,18 @@ fetchBreeds()
 });
 
 
+
 function onLoad() {
     elements.loader.textContent = '';
     elements.catInfo.classList.add('visually-hidden');
     elements.loader.classList.remove('visually-hidden');
     
 }
-function onFinish(catCard) {
-    // elements.catInfo.remove()
-    //  elements.catInfo.innerHTML = catCard;
+function onFinish() {
+    const cardRemoved = elements.catInfo.querySelector('.card')
+    if (cardRemoved) {
+        cardRemoved.remove()
+    }
     elements.catInfo.classList.remove('visually-hidden');
     elements.loader.classList.add('visually-hidden');
 }
