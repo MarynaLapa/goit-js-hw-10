@@ -17,7 +17,7 @@ elements.catInfo.classList.add('visually-hidden')
 
 fetchBreeds()
     .then(datas => {
-        
+
         const listBreed = datas.map(({ id, name }) => {
             return `<option value="${id}">${name}</option>`
         }).join('');
@@ -81,7 +81,6 @@ fetchBreeds()
                                     `
                                 }).join('');
 
-                                removeChildren(elements.catCard)
                                 elements.catInfo.innerHTML = catCard;
 
                                 onFinish() 
