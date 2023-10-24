@@ -11,19 +11,24 @@ const elements = {
     catInfo: document.querySelector('.cat-info')
 } 
 
-elements.loader.classList.add('visually-hidden');
-elements.error.classList.add('visually-hidden');
-elements.catInfo.classList.add('visually-hidden')
+elements.loader.textContent = '';
+elements.error.textContent = '';
+elements.catInfo.classList.add('visually-hidden');
 
 fetchBreeds()
-    .then(datas => {
-
-        const listBreed = datas.map(({ id, name }) => {
+    .then(data => {
+        data.unshift(`{ id: 'select cat', name: 'select cat' }`)
+        const listBreed = data.map(({ id, name }) => {
             return `<option value="${id}">${name}</option>`
         }).join('');
         elements.select.insertAdjacentHTML('beforeend', listBreed);
-        
-    
+
+        elements.select[0].textContent = 'Select cat'
+        elements.select[0].setAttribute("data-placeholder", "true")
+
+        elements.loader.classList.add('visually-hidden')
+        elements.select.classList.remove('visually-hidden')
+       
         const select = new SlimSelect({
             select: elements.select,
 
@@ -49,18 +54,18 @@ fetchBreeds()
                 maxValuesShown: 20,
                 maxValuesMessage: '{number} selected',
             },
+            
             events: {
                 afterChange: (newVal) => {
             
                     onLoad();
-                    
 
                     const breedId = newVal[0].value;
                 
                     fetchBreeds()
                         .then(data => {
                         elements.catInfo.classList.remove('visually-hidden');
-                        console.log(data)
+
                         const catArr = data.filter(element => {return element.id === breedId});
                         const { description, name, temperament } = catArr[0];
 
@@ -71,7 +76,7 @@ fetchBreeds()
                                 const catCard = catInfo.map(({ url }) => {
                                     return `
                                         <div class="card">
-                                            <img src="${url}" alt="Сat breed '${name}'" width="400" class="card-image">
+                                            <img src="${url}" alt="Сat breed '${name}'" width="400" class="card-image" loading="lazy">
                                             <div class="card-description">
                                                 <h1 class="card-title">${name}</h1>
                                                 <p class="card-text">${description}</p>
@@ -82,8 +87,7 @@ fetchBreeds()
                                 }).join('');
 
                                 elements.catInfo.innerHTML = catCard;
-
-                                // onFinish() 
+                                
                             })
                             .catch(error => {
                                 onError(error)
@@ -113,7 +117,6 @@ fetchBreeds()
 
 
 function onLoad() {
-    elements.loader.textContent = '';
     elements.catInfo.classList.add('visually-hidden');
     elements.loader.classList.remove('visually-hidden');
     
@@ -128,6 +131,6 @@ function onFinish() {
 }
 
 function onError(error) {
-    elements.error.textContent = '';
+    elements.select.classList.add('visually-hidden');
     Notiflix.Notify.warning('Oops! Something went wrong! Try reloading the page!')
 }
