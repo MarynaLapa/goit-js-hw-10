@@ -131,6 +131,6 @@ function onFinish() {
 }
 
 function onError(error) {
-    elements.select.classList.add('visually-hidden');
+    elements.loader.classList.add('visually-hidden');
     Notiflix.Notify.warning('Oops! Something went wrong! Try reloading the page!')
 }
